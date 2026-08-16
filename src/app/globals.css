@@ -751,3 +751,15 @@ html[data-theme="dark"] .progress-card {
   text-transform: uppercase;
   color: var(--muted);
 }
+
+.demo-banner {
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(26, 107, 68, 0.35);
+  background: rgba(26, 107, 68, 0.1);
+  color: var(--ink);
+}
+
+html[data-theme="dark"] .demo-banner {
+  background: rgba(76, 175, 122, 0.12);
+}

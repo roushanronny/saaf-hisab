@@ -15,19 +15,19 @@ export async function GET() {
         done: cfg.razorpayEnabled,
         detail: cfg.razorpayEnabled
           ? `Key ID: ${cfg.razorpayKeyId.slice(0, 12)}…`
-          : "Vercel pe RAZORPAY_KEY_ID + RAZORPAY_KEY_SECRET daalo (Test keys pehle)",
+          : "Skip OK — demo UPI simulate. Add keys later when ready.",
       },
       otpSms: {
         done: cfg.smsLive,
         detail: cfg.smsLive
           ? `Provider: ${cfg.smsProvider}`
-          : "Vercel pe MSG91_AUTH_KEY daalo (ya Twilio 3 keys)",
+          : "Skip OK — demo OTP 1234. MSG91 later.",
       },
       receiptSms: {
         done: cfg.smsLive,
         detail: cfg.smsLive
           ? `Same as OTP (${cfg.smsProvider})`
-          : "SMS key ke baad receipt bhi real ho jayega",
+          : "Skip OK — receipt preview in app until SMS keys.",
       },
       webhook: {
         done: Boolean(cfg.razorpayWebhookSecret && publicApp),
@@ -35,9 +35,10 @@ export async function GET() {
           ? "NEXT_PUBLIC_APP_URL public hona chahiye"
           : cfg.razorpayWebhookSecret
             ? `OK — ${cfg.appUrl}/api/webhooks/razorpay`
-            : `APP_URL OK. Ab Razorpay webhook + RAZORPAY_WEBHOOK_SECRET chahiye`,
+            : "Skip OK — needed only with live Razorpay.",
       },
     },
+    demoMode: !cfg.razorpayEnabled && !cfg.smsLive,
     appUrl: cfg.appUrl,
     webhookUrl: `${cfg.appUrl}/api/webhooks/razorpay`,
     canWriteEnv: process.env.NODE_ENV !== "production",

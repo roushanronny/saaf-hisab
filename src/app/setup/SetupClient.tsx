@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { BackLink, Topbar } from "@/components/Topbar";
 import { useUI } from "@/components/Providers";
 
@@ -11,11 +12,13 @@ type Status = {
   canWriteEnv: boolean;
   isVercel?: boolean;
   vercelEnvUrl?: string;
+  demoMode?: boolean;
 };
 
 export function SetupClient() {
   const { t } = useUI();
   const [status, setStatus] = useState<Status | null>(null);
+  const [showLater, setShowLater] = useState(false);
 
   const labels: Record<string, string> = {
     razorpayUpi: t.setupLabelRzp,
@@ -31,6 +34,11 @@ export function SetupClient() {
       .catch(() => setStatus(null));
   }, []);
 
+  const demoMode = useMemo(() => {
+    if (!status?.items) return true;
+    return Object.values(status.items).every((v) => !v.done);
+  }, [status]);
+
   const vercelUrl =
     status?.vercelEnvUrl ||
     "https://vercel.com/roushan-kumars-projects-97d60324/saaf-hisab/settings/environment-variables";
@@ -42,6 +50,21 @@ export function SetupClient() {
 
       <h1 className="font-display text-[1.45rem] tracking-tight">{t.setupTitle}</h1>
       <p className="mb-4 text-[0.95rem] text-[var(--muted)]">{t.setupIntro}</p>
+
+      {demoMode && (
+        <div className="demo-banner mb-4">
+          <strong>{t.setupDemoOk}</strong>
+          <p className="mt-1 text-[0.9rem]">{t.setupDemoBanner}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link href="/events" className="btn btn-accent btn-sm">
+              {t.seeEvents}
+            </Link>
+            <Link href="/events/new" className="btn btn-ghost btn-sm">
+              {t.newEvent}
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="panel mb-4">
         <h2 className="font-display mb-3 text-lg">{t.setupStatus}</h2>
@@ -60,10 +83,10 @@ export function SetupClient() {
                   className={
                     v.done
                       ? "font-semibold text-[var(--ok)]"
-                      : "font-semibold text-[var(--warn)]"
+                      : "font-semibold text-[var(--muted)]"
                   }
                 >
-                  {v.done ? t.setupDone : t.setupPending}
+                  {v.done ? t.setupDone : t.setupDemoOk}
                 </span>
               </li>
             ))}
@@ -71,95 +94,79 @@ export function SetupClient() {
         ) : (
           <p className="text-[var(--muted)]">{t.loading}</p>
         )}
-        {status && (
-          <p className="mt-3 break-all text-[0.85rem] text-[var(--muted)]">
-            Webhook URL:{" "}
-            <code className="rounded bg-white/70 px-1.5 py-0.5 dark:bg-black/30">
-              {status.webhookUrl}
-            </code>
-          </p>
-        )}
       </div>
 
       <div className="panel mb-4">
-        <h2 className="font-display mb-2 text-lg">{t.setupHow}</h2>
-        <ol className="list-decimal space-y-2 pl-5 text-[0.95rem] text-[var(--muted)]">
-          <li>
-            <a
-              className="font-semibold text-[var(--brand)] underline"
-              href="https://dashboard.razorpay.com/app/keys"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Razorpay API Keys
-            </a>{" "}
-            (Test) → Key ID + Secret
-          </li>
-          <li>
-            <a
-              className="font-semibold text-[var(--brand)] underline"
-              href="https://control.msg91.com/signin/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              MSG91
-            </a>{" "}
-            → Auth Key (OTP + receipt SMS)
-          </li>
-          <li>
-            <a
-              className="font-semibold text-[var(--brand)] underline"
-              href={vercelUrl}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Vercel → Environment Variables
-            </a>
-            <ul className="mt-2 list-disc pl-5 font-mono text-[0.8rem] text-[var(--ink)]">
-              <li>RAZORPAY_KEY_ID</li>
-              <li>RAZORPAY_KEY_SECRET</li>
-              <li>MSG91_AUTH_KEY</li>
-              <li>MSG91_SENDER_ID = SAAFHB</li>
-              <li>RAZORPAY_WEBHOOK_SECRET</li>
-            </ul>
-          </li>
-          <li>
-            Razorpay → Webhooks → URL ={" "}
-            <code className="text-[var(--ink)]">
-              {status?.webhookUrl || "…/api/webhooks/razorpay"}
-            </code>{" "}
-            · <code className="text-[var(--ink)]">payment.captured</code>
-          </li>
-          <li>
-            Vercel → <strong className="text-[var(--ink)]">Deployments → Redeploy</strong>
-          </li>
-          <li>{t.setupStepRefresh}</li>
-        </ol>
+        <button
+          type="button"
+          className="flex w-full items-center justify-between gap-2 text-left"
+          onClick={() => setShowLater((s) => !s)}
+        >
+          <h2 className="font-display text-lg">{t.setupHow}</h2>
+          <span className="text-[var(--muted)]">{showLater ? "−" : "+"}</span>
+        </button>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          <a className="btn btn-primary" href={vercelUrl} target="_blank" rel="noreferrer">
-            {t.setupOpenVercel}
-          </a>
-          <a
-            className="btn btn-ghost"
-            href="https://dashboard.razorpay.com/app/keys"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Razorpay
-          </a>
-          <a
-            className="btn btn-ghost"
-            href="https://control.msg91.com/signin/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            MSG91
-          </a>
-        </div>
+        {showLater && (
+          <>
+            <ol className="mt-3 list-decimal space-y-2 pl-5 text-[0.95rem] text-[var(--muted)]">
+              <li>
+                <a
+                  className="font-semibold text-[var(--brand)] underline"
+                  href="https://dashboard.razorpay.com/app/keys"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Razorpay
+                </a>{" "}
+                (Test) → Key ID + Secret
+              </li>
+              <li>
+                <a
+                  className="font-semibold text-[var(--brand)] underline"
+                  href="https://control.msg91.com/signin/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  MSG91
+                </a>{" "}
+                → Auth Key
+              </li>
+              <li>
+                <a
+                  className="font-semibold text-[var(--brand)] underline"
+                  href={vercelUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Vercel Env
+                </a>
+                <ul className="mt-2 list-disc pl-5 font-mono text-[0.8rem] text-[var(--ink)]">
+                  <li>RAZORPAY_KEY_ID</li>
+                  <li>RAZORPAY_KEY_SECRET</li>
+                  <li>MSG91_AUTH_KEY</li>
+                  <li>MSG91_SENDER_ID = SAAFHB</li>
+                  <li>RAZORPAY_WEBHOOK_SECRET</li>
+                </ul>
+              </li>
+              <li>
+                Webhook:{" "}
+                <code className="text-[var(--ink)]">
+                  {status?.webhookUrl || "…/api/webhooks/razorpay"}
+                </code>
+              </li>
+              <li>Vercel → Redeploy</li>
+              <li>{t.setupStepRefresh}</li>
+            </ol>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <a className="btn btn-primary" href={vercelUrl} target="_blank" rel="noreferrer">
+                {t.setupOpenVercel}
+              </a>
+            </div>
+          </>
+        )}
       </div>
 
-      <div className="border-l-[3px] border-[var(--accent)] py-3 pl-4 text-[0.9rem] text-[var(--muted)]">
+      <div className="border-l-[3px] border-[var(--ok)] py-3 pl-4 text-[0.9rem] text-[var(--muted)]">
         {t.setupHint}
       </div>
 
@@ -202,7 +209,7 @@ function LocalDevForm({ onSaved }: { onSaved: () => void }) {
 
   return (
     <form onSubmit={save} className="panel mt-4 flex flex-col gap-3">
-      <h2 className="font-display text-lg">Local — .env</h2>
+      <h2 className="font-display text-lg">Local — .env (optional)</h2>
       {(
         [
           ["RAZORPAY_KEY_ID", "rzp_test_…"],
