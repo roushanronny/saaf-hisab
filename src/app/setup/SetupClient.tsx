@@ -45,7 +45,7 @@ export function SetupClient() {
 
   return (
     <>
-      <Topbar pill={t.setup} />
+      <Topbar />
       <BackLink href="/" label={t.home} />
 
       <h1 className="font-display text-[1.45rem] tracking-tight">{t.setupTitle}</h1>

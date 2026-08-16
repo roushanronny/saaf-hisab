@@ -11,7 +11,7 @@ export default async function ConfirmPage({ params, searchParams }: Props) {
   const sp = await searchParams;
   return (
     <>
-      <Topbar pill="Phase 3" />
+      <Topbar />
       <ConfirmClient token={token} initialAction={sp.a || null} />
     </>
   );
