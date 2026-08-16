@@ -83,7 +83,7 @@ export function thankYouWhatsAppText(opts: {
   ];
   if (opts.receiptNo) parts.push(`रसीद: ${opts.receiptNo}`);
   if (opts.eventUrl) parts.push(`हिसाब देखें: ${opts.eventUrl}`);
-  parts.push(`— साफ़ हिसाब`);
+  parts.push(`— साफ़ हिसाब · ROUSHAN KUMAR`);
   return parts.join("\n");
 }
 
@@ -99,6 +99,6 @@ export function cashRemindWhatsAppText(opts: {
     `«${opts.eventName}» में ₹${opts.amount.toLocaleString("en-IN")} नकद की पुष्टि बाकी है।`,
     `हाँ: ${opts.yesUrl}`,
     `नहीं: ${opts.noUrl}`,
-    `— साफ़ हिसाब`,
+    `— साफ़ हिसाब · ROUSHAN KUMAR`,
   ].join("\n");
 }

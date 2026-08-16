@@ -35,3 +35,8 @@ Ya local: `cd ~/Desktop/saaf-hisab && npx vercel --prod`
 ## Check
 https://saaf-hisab.vercel.app/api/config  
 → `razorpayEnabled: true`, `smsLive: true` hona chahiye
+
+---
+
+Made by ROUSHAN KUMAR
+

@@ -739,3 +739,15 @@ html[data-theme="dark"] .progress-card {
   font-size: 0.78rem;
   color: var(--muted);
 }
+
+.site-footer {
+  margin-top: 48px;
+  padding: 18px 0 8px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}

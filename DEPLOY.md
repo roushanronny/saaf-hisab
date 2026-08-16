@@ -32,3 +32,8 @@ npx vercel --prod
 Phir same env vars set karo.
 
 Optional better DB: Neon free → new `DATABASE_URL` → `npm run db:setup` → update Vercel env.
+
+---
+
+Made by ROUSHAN KUMAR
+

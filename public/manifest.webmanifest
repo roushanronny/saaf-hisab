@@ -1,7 +1,7 @@
 {
   "name": "SAAF Hisab",
   "short_name": "SAAF Hisab",
-  "description": "Event-based chanda & expense transparency",
+  "description": "Event-based chanda & expense transparency. Made by ROUSHAN KUMAR.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#e7efe8",

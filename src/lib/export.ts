@@ -16,7 +16,7 @@ export function downloadReceiptPdf(opts: {
     .amt{font-size:28px;font-weight:700;margin:12px 0}
   </style></head><body>
   <h1>SAAF Hisāb</h1>
-  <div class="muted">Contribution receipt</div>
+  <div class="muted">Contribution receipt · Made by ROUSHAN KUMAR</div>
   <div class="box">
     <div class="row"><span>Receipt</span><strong>${opts.receiptNo}</strong></div>
     <div class="row"><span>Event</span><strong>${escapeHtml(opts.eventName)}</strong></div>
@@ -142,7 +142,7 @@ export function downloadEventReportPdf(opts: {
     .fill{height:100%;background:#b85c18}
   </style></head><body>
   <h1>साफ़ हिसाब — रिपोर्ट</h1>
-  <div class="muted">${escapeHtml(opts.eventName)}${opts.purpose ? " · " + escapeHtml(opts.purpose) : ""}</div>
+  <div class="muted">${escapeHtml(opts.eventName)}${opts.purpose ? " · " + escapeHtml(opts.purpose) : ""} · Made by ROUSHAN KUMAR</div>
   <div class="grid">
     <div class="card"><div class="muted">Collected</div><div class="big">₹${opts.collected.toLocaleString("en-IN")}</div></div>
     <div class="card"><div class="muted">Spent</div><div class="big">₹${opts.spent.toLocaleString("en-IN")}</div></div>

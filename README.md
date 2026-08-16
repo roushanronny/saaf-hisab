@@ -2,6 +2,10 @@
 
 Event transparency app — Next.js + Prisma + PostgreSQL.
 
+**Made by ROUSHAN KUMAR**
+
+Live: https://saaf-hisab.vercel.app
+
 ## Local
 
 ```bash
@@ -38,7 +42,7 @@ npx vercel --prod   # production
 | `DATABASE_URL` | Postgres connection string |
 | `NEXT_PUBLIC_APP_URL` | `https://your-app.vercel.app` |
 | `DEMO_OTP` | `1234` (until SMS live) |
-| Razorpay / SMS | optional until Phase 2 live |
+| Razorpay / SMS | optional until live UPI/SMS |
 
 After first deploy, seed once:
 
@@ -54,3 +58,7 @@ Or open the empty app and create your first event.
 ## Notes
 - SQLite removed — production needs Postgres.
 - `vercel-build` runs `prisma db push` on each deploy (MVP-friendly).
+
+---
+
+© ROUSHAN KUMAR

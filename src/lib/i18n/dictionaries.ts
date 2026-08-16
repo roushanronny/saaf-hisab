@@ -162,6 +162,7 @@ export const dictionaries = {
     remindSent: "Reminder sent",
     upiQrPay: "Scan UPI QR",
     noActivity: "No activity yet.",
+    madeBy: "Made by ROUSHAN KUMAR",
   },
   hi: {
     brand: "साफ़ हिसाब",
@@ -325,6 +326,7 @@ export const dictionaries = {
     remindSent: "याद भेज दी गई",
     upiQrPay: "यूपीआई क्यूआर स्कैन करें",
     noActivity: "अभी कोई गतिविधि नहीं।",
+    madeBy: "निर्मित — ROUSHAN KUMAR",
   },
 } as const;
 
