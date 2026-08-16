@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Topbar } from "@/components/Topbar";
-import { InstallApp } from "@/components/InstallApp";
 import { useUI } from "@/components/Providers";
 
 export default function HomePage() {
@@ -31,17 +30,12 @@ export default function HomePage() {
           <Link href="/events/new" className="btn btn-accent">
             {t.newEvent}
           </Link>
-          <Link href="/install" className="btn btn-primary">
-            {t.installApp}
-          </Link>
           <Link href="/events" className="btn btn-ghost">
             {t.seeEvents}
           </Link>
         </div>
         <div className="hero-rule" aria-hidden />
       </section>
-
-      <InstallApp variant="card" />
 
       <p className="mt-5 border-l-[3px] border-[var(--accent)] py-2 pl-4 text-[0.88rem] text-[var(--muted)]">
         {t.phaseNote}{" "}

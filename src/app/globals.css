@@ -858,6 +858,23 @@ html[data-theme="dark"] .progress-card {
   color: var(--muted);
 }
 
+.site-footer__sep {
+  margin: 0 0.45rem;
+  opacity: 0.55;
+}
+
+.site-footer__link {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.site-footer__link:hover {
+  color: var(--brand-deep);
+}
+
 .demo-banner {
   padding: 16px 18px;
   border-radius: 12px;
