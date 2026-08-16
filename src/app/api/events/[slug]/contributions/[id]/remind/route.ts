@@ -3,6 +3,7 @@ import { getAppConfig } from "@/lib/config";
 import { prisma } from "@/lib/prisma";
 import { buildCashConfirmMessage, sendSms } from "@/lib/sms";
 import { cashRemindWhatsAppText, logActivity } from "@/lib/event-helpers";
+import { requireEventAdminPin } from "@/lib/access";
 
 type Ctx = { params: Promise<{ slug: string; id: string }> };
 
@@ -11,8 +12,11 @@ export async function POST(req: Request, ctx: Ctx) {
   const body = await req.json().catch(() => ({}));
   const via = String(body.via || "sms");
 
-  const event = await prisma.event.findUnique({ where: { slug } });
-  if (!event) return NextResponse.json({ error: "Event nahi mila" }, { status: 404 });
+  const gate = await requireEventAdminPin(slug, body.adminPin);
+  if (!gate.ok) {
+    return NextResponse.json({ error: gate.error }, { status: gate.status });
+  }
+  const event = gate.event;
 
   const contribution = await prisma.contribution.findFirst({
     where: { id, eventId: event.id },

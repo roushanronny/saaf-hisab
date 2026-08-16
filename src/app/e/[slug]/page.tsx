@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { BackLink, Topbar } from "@/components/Topbar";
 import { EventDashboard } from "@/components/EventDashboard";
 import { prisma } from "@/lib/prisma";
+import { hasViewAccess } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,41 @@ export default async function EventPage({ params }: Props) {
 
   if (!event) notFound();
 
+  const unlocked = await hasViewAccess(slug, event.viewPasswordHash);
+  const hasViewPassword = Boolean(event.viewPasswordHash);
+
+  if (hasViewPassword && !unlocked) {
+    return (
+      <>
+        <Topbar />
+        <BackLink href="/events" />
+        <EventDashboard
+          event={{
+            slug: event.slug,
+            name: event.name,
+            purpose: event.purpose,
+            target: event.target,
+            visibility: event.visibility,
+            adminPhone: event.adminPhone,
+            coAdminPhone: event.coAdminPhone,
+            hasAdminPin: Boolean(event.adminPinHash),
+            hasViewPassword: true,
+            locked: true,
+            collectUpiId: null,
+            collected: 0,
+            spent: 0,
+            balance: 0,
+            contributions: [],
+            expenses: [],
+            members: [],
+            photos: [],
+            activityLogs: [],
+          }}
+        />
+      </>
+    );
+  }
+
   const collected = event.contributions
     .filter((c) => c.status === "confirmed")
     .reduce((s, c) => s + c.amount, 0);
@@ -41,7 +77,8 @@ export default async function EventPage({ params }: Props) {
     adminPhone: event.adminPhone,
     coAdminPhone: event.coAdminPhone,
     hasAdminPin: Boolean(event.adminPinHash),
-    hasViewPassword: Boolean(event.viewPasswordHash),
+    hasViewPassword,
+    locked: false,
     collectUpiId: event.collectUpiId,
     collected,
     spent,
@@ -88,13 +125,15 @@ export default async function EventPage({ params }: Props) {
       name: m.name,
       role: m.role,
     })),
-    photos: event.photos.map((p) => ({
-      id: p.id,
-      caption: p.caption,
-      dataUrl: p.dataUrl,
-      kind: p.kind,
-      createdAt: p.createdAt.toISOString(),
-    })),
+    photos: event.photos
+      .filter((p) => p.kind === "gallery")
+      .map((p) => ({
+        id: p.id,
+        caption: p.caption,
+        dataUrl: p.dataUrl,
+        kind: p.kind,
+        createdAt: p.createdAt.toISOString(),
+      })),
     activityLogs: event.activityLogs.map((a) => ({
       id: a.id,
       action: a.action,

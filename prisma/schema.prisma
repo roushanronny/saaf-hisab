@@ -151,6 +151,7 @@ model OtpSession {
   purpose   String
   expiresAt DateTime
   verified  Boolean  @default(false)
+  consumed  Boolean  @default(false)
   createdAt DateTime @default(now())
 
   @@index([phone])

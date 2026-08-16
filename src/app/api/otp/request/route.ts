@@ -26,16 +26,26 @@ export async function POST(req: Request) {
 
   const sms = await sendSms(phone, buildOtpMessage(code));
 
+  if (cfg.smsLive && !sms.ok) {
+    return NextResponse.json(
+      {
+        error: sms.error || "SMS bhej nahi paya",
+        otpSessionId: session.id,
+        smsLive: true,
+        smsProvider: sms.provider,
+      },
+      { status: 502 }
+    );
+  }
+
   return NextResponse.json({
     otpSessionId: session.id,
     smsLive: cfg.smsLive,
     smsProvider: sms.provider,
     smsOk: sms.ok,
-    // Only expose hint in non-live SMS mode
     demoHint: cfg.smsLive
       ? "OTP aapke phone pe bhej diya gaya hai"
       : `SMS keys nahi — demo OTP: ${code}`,
     expiresAt,
-    error: sms.ok ? undefined : sms.error,
   });
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPin } from "@/lib/pin";
+import { pinCookieName, pinCookieValue } from "@/lib/access";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
@@ -20,5 +21,13 @@ export async function POST(req: Request, ctx: Ctx) {
     return NextResponse.json({ ok: false, error: "Galat PIN" }, { status: 403 });
   }
 
-  return NextResponse.json({ ok: true });
+  const res = NextResponse.json({ ok: true });
+  res.cookies.set(pinCookieName(slug), pinCookieValue(slug, event.adminPinHash), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 8,
+  });
+  return res;
 }

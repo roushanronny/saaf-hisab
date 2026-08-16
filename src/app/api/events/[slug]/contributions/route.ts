@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { confirmToken, receiptNo } from "@/lib/format";
 import { buildCashConfirmMessage, sendSms } from "@/lib/sms";
 import { logActivity } from "@/lib/event-helpers";
+import { consumeOtpSession } from "@/lib/access";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
@@ -35,9 +36,12 @@ export async function POST(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: "Saari fields sahi bharo" }, { status: 400 });
   }
 
-  const otp = await prisma.otpSession.findUnique({ where: { id: otpSessionId } });
-  if (!otp || otp.phone !== phone || !otp.verified || otp.expiresAt < new Date()) {
-    return NextResponse.json({ error: "Pehle phone OTP verify karo" }, { status: 403 });
+  const otp = await consumeOtpSession(otpSessionId, phone);
+  if (!otp) {
+    return NextResponse.json(
+      { error: "Pehle phone OTP verify karo (ya naya OTP lo)" },
+      { status: 403 }
+    );
   }
 
   const cfg = getAppConfig();

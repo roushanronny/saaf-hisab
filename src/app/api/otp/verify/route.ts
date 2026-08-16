@@ -10,6 +10,9 @@ export async function POST(req: Request) {
   if (!session) {
     return NextResponse.json({ error: "OTP session invalid" }, { status: 400 });
   }
+  if (session.consumed) {
+    return NextResponse.json({ error: "OTP already used — naya OTP lo" }, { status: 400 });
+  }
   if (session.expiresAt < new Date()) {
     return NextResponse.json({ error: "OTP expire ho gaya" }, { status: 400 });
   }

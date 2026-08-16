@@ -7,7 +7,6 @@ import { getAppConfig } from "@/lib/config";
 export async function POST(req: Request) {
   const body = await req.json();
   const contributionId = String(body.contributionId || "");
-  const mode = String(body.mode || "");
 
   if (!contributionId) {
     return NextResponse.json({ error: "contributionId chahiye" }, { status: 400 });
@@ -22,8 +21,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Contribution nahi mili" }, { status: 404 });
   }
 
-  // Simulate path (no Razorpay keys)
-  if (mode === "simulate" || contribution.paymentIntent?.provider === "simulate") {
+  // Only real simulate intents — never trust client mode: "simulate"
+  if (contribution.paymentIntent?.provider === "simulate") {
     const result = await confirmContributionPayment({
       contributionId,
       paymentId: `SIM${Date.now()}`,

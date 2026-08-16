@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BackLink, Topbar } from "@/components/Topbar";
 import { useUI } from "@/components/Providers";
@@ -34,10 +34,7 @@ export function SetupClient() {
       .catch(() => setStatus(null));
   }, []);
 
-  const demoMode = useMemo(() => {
-    if (!status?.items) return true;
-    return Object.values(status.items).every((v) => !v.done);
-  }, [status]);
+  const demoMode = status?.demoMode ?? true;
 
   const vercelUrl =
     status?.vercelEnvUrl ||
@@ -86,7 +83,7 @@ export function SetupClient() {
                       : "font-semibold text-[var(--muted)]"
                   }
                 >
-                  {v.done ? t.setupDone : t.setupDemoOk}
+                  {v.done ? t.setupDone : t.setupPending}
                 </span>
               </li>
             ))}

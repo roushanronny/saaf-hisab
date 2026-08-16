@@ -79,6 +79,7 @@ type EventPayload = {
   coAdminPhone: string | null;
   hasAdminPin: boolean;
   hasViewPassword: boolean;
+  locked?: boolean;
   collectUpiId: string | null;
   collected: number;
   spent: number;
@@ -103,9 +104,9 @@ export function EventDashboard({ event }: { event: EventPayload }) {
   const [share, setShare] = useState(`/e/${event.slug}`);
   const [contributeUrl, setContributeUrl] = useState(`/e/${event.slug}/contribute`);
   const [adminPinSession, setAdminPinSession] = useState(false);
-  const [unlocked, setUnlocked] = useState(!event.hasViewPassword);
+  const [unlocked, setUnlocked] = useState(!event.hasViewPassword && !event.locked);
   const [pw, setPw] = useState("");
-  const [photos, setPhotos] = useState(event.photos);
+  const [photos, setPhotos] = useState(event.photos.filter((p) => p.kind === "gallery"));
   const [members, setMembers] = useState(event.members);
   const [caption, setCaption] = useState("");
   const [photoBusy, setPhotoBusy] = useState(false);
@@ -117,13 +118,11 @@ export function EventDashboard({ event }: { event: EventPayload }) {
     if (sessionStorage.getItem(`saaf_pin_ok_${event.slug}`) === "1") {
       setAdminPinSession(true);
     }
-    if (
-      event.hasViewPassword &&
-      sessionStorage.getItem(`saaf_view_ok_${event.slug}`) === "1"
-    ) {
+    if (!event.locked && event.hasViewPassword) {
       setUnlocked(true);
     }
-  }, [event.slug, event.hasViewPassword]);
+    if (event.locked) setUnlocked(false);
+  }, [event.slug, event.hasViewPassword, event.locked]);
 
   const qrSrc = useMemo(() => {
     return `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(contributeUrl)}`;
@@ -182,6 +181,7 @@ export function EventDashboard({ event }: { event: EventPayload }) {
   async function unlock(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
+    setMsg("");
     const res = await fetch(`/api/events/${event.slug}/verify-password`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -192,8 +192,18 @@ export function EventDashboard({ event }: { event: EventPayload }) {
       setErr(data.error || t.error);
       return;
     }
-    sessionStorage.setItem(`saaf_view_ok_${event.slug}`, "1");
     setUnlocked(true);
+    router.refresh();
+  }
+
+  function flashOk(message: string) {
+    setErr("");
+    setMsg(message);
+  }
+
+  function flashErr(message: string) {
+    setMsg("");
+    setErr(message);
   }
 
   async function ensurePin(): Promise<boolean> {
@@ -207,7 +217,7 @@ export function EventDashboard({ event }: { event: EventPayload }) {
     });
     const data = await res.json();
     if (!res.ok || !data.ok) {
-      setErr(data.error || t.wrongPin);
+      flashErr(data.error || t.wrongPin);
       return false;
     }
     sessionStorage.setItem(`saaf_pin_ok_${event.slug}`, "1");
@@ -218,9 +228,9 @@ export function EventDashboard({ event }: { event: EventPayload }) {
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(share);
-      setMsg(t.copied);
+      flashOk(t.copied);
     } catch {
-      setMsg(share);
+      flashOk(share);
     }
   }
 
@@ -235,7 +245,7 @@ export function EventDashboard({ event }: { event: EventPayload }) {
   function doExport() {
     exportDonorsCsv(event.name, event.contributions);
     exportExpensesCsv(event.name, event.expenses);
-    setMsg(t.exportExcel);
+    flashOk(t.exportExcel);
   }
 
   function doReport() {
@@ -267,8 +277,10 @@ export function EventDashboard({ event }: { event: EventPayload }) {
   }
 
   async function remind(c: Contribution, via: "sms" | "whatsapp") {
+    if (!(await ensurePin())) return;
     setBusy(c.id);
-    setErr("");
+    flashOk("");
+    flashErr("");
     const res = await fetch(`/api/events/${event.slug}/contributions/${c.id}/remind`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -277,10 +289,10 @@ export function EventDashboard({ event }: { event: EventPayload }) {
     const data = await res.json();
     setBusy("");
     if (!res.ok) {
-      setErr(data.error || t.error);
+      flashErr(data.error || t.error);
       return;
     }
-    setMsg(t.remindSent);
+    flashOk(t.remindSent);
     if (via === "whatsapp" && data.waUrl) {
       window.open(data.waUrl, "_blank", "noopener,noreferrer");
     }
@@ -295,7 +307,7 @@ export function EventDashboard({ event }: { event: EventPayload }) {
     );
     if (!coAdminPhone) return;
     setBusy(id);
-    setErr("");
+    flashErr("");
     const res = await fetch(`/api/events/${event.slug}/expenses/${id}/approve`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -304,10 +316,10 @@ export function EventDashboard({ event }: { event: EventPayload }) {
     const data = await res.json();
     setBusy("");
     if (!res.ok) {
-      setErr(data.error || t.error);
+      flashErr(data.error || t.error);
       return;
     }
-    setMsg(t.approved);
+    flashOk(t.approved);
     router.refresh();
   }
 
@@ -325,40 +337,56 @@ export function EventDashboard({ event }: { event: EventPayload }) {
     const data = await res.json();
     setBusy("");
     if (!res.ok) {
-      setErr(data.error || t.error);
+      flashErr(data.error || t.error);
       return;
     }
-    setMsg("Flagged");
+    flashOk(t.flagDispute);
     router.refresh();
   }
 
   async function onPhotoFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!(await ensurePin())) {
+      e.target.value = "";
+      return;
+    }
     setPhotoBusy(true);
+    const input = e.target;
     const reader = new FileReader();
-    reader.onload = async () => {
-      const dataUrl = String(reader.result || "");
-      const res = await fetch(`/api/events/${event.slug}/photos`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dataUrl, caption }),
-      });
-      const data = await res.json();
+    reader.onerror = () => {
       setPhotoBusy(false);
-      if (!res.ok) {
-        setErr(data.error || t.error);
-        return;
+      flashErr(t.error);
+    };
+    reader.onload = async () => {
+      try {
+        const dataUrl = String(reader.result || "");
+        const res = await fetch(`/api/events/${event.slug}/photos`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dataUrl, caption }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          flashErr(data.error || t.error);
+          return;
+        }
+        setPhotos((p) => [data, ...p]);
+        setCaption("");
+        flashOk(t.success);
+      } catch {
+        flashErr(t.error);
+      } finally {
+        setPhotoBusy(false);
+        input.value = "";
       }
-      setPhotos((p) => [data, ...p]);
-      setCaption("");
-      setMsg(t.success);
     };
     reader.readAsDataURL(file);
   }
 
   async function addMember(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!(await ensurePin())) return;
     const fd = new FormData(e.currentTarget);
     const actorPhone = window.prompt(`${t.adminPhone} (${event.adminPhone})`);
     if (!actorPhone) return;
@@ -376,14 +404,14 @@ export function EventDashboard({ event }: { event: EventPayload }) {
     const data = await res.json();
     setBusy("");
     if (!res.ok) {
-      setErr(data.error || t.error);
+      flashErr(data.error || t.error);
       return;
     }
     setMembers((m) => {
       const rest = m.filter((x) => x.phone !== data.phone);
       return [...rest, data];
     });
-    setMsg(t.success);
+    flashOk(t.success);
     (e.target as HTMLFormElement).reset();
   }
 
@@ -618,7 +646,24 @@ export function EventDashboard({ event }: { event: EventPayload }) {
                         {catLabel(x.category)} · {x.vendor}
                         {x.vendorUpi ? ` · ${x.vendorUpi}` : ""} ·{" "}
                         {formatWhen(new Date(x.createdAt))}
+                        {x.gps ? ` · ${x.gps}` : ""}
                       </div>
+                      {x.billNote && (
+                        <div className="text-[0.85rem] text-[var(--muted)]">{x.billNote}</div>
+                      )}
+                      {x.billPhotoData && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={x.billPhotoData}
+                          alt="Bill"
+                          className="mt-2 max-h-28 rounded-lg border border-[var(--line)] object-contain"
+                        />
+                      )}
+                      {x.flags?.length > 0 && (
+                        <div className="mt-1 text-[0.8rem] text-[var(--danger)]">
+                          {x.flags.map((f) => `${f.byName}: ${f.comment}`).join(" · ")}
+                        </div>
+                      )}
                     </div>
                     <div
                       className="whitespace-nowrap font-bold"

@@ -101,7 +101,7 @@ export function ContributeWizard({
     const fd = new FormData(e.currentTarget);
     const phone = String(fd.get("phone")).trim();
     if (!/^\d{10}$/.test(phone)) {
-      setError(t.phone);
+      setError(t.invalidPhone);
       return;
     }
     const next: Draft = {
@@ -152,6 +152,7 @@ export function ContributeWizard({
   }
 
   async function openUpi() {
+    if (loading) return;
     setError("");
     setLoading(true);
     setPayMode("UPI");
@@ -233,7 +234,7 @@ export function ContributeWizard({
   }
 
   async function finishSimulate() {
-    if (!simulateId) return;
+    if (!simulateId || loading) return;
     setError("");
     setLoading(true);
     const res = await fetch("/api/payments/verify", {
@@ -254,6 +255,7 @@ export function ContributeWizard({
   }
 
   async function completeCash() {
+    if (loading) return;
     setError("");
     setLoading(true);
     setPayMode("Cash");
@@ -398,6 +400,7 @@ export function ContributeWizard({
                 <p className="mt-2 text-[0.85rem] text-[var(--muted)]">
                   {t.upiQrPay} · {collectUpiId}
                 </p>
+                <p className="mt-1 text-[0.8rem] text-[var(--muted)]">{t.upiQrHint}</p>
               </div>
             )}
             <div className="flex flex-wrap gap-2.5">
