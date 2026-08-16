@@ -1,0 +1,157 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id               String         @id @default(cuid())
+  slug             String         @unique
+  name             String
+  purpose          String?
+  target           Int?
+  visibility       String         @default("public")
+  adminPhone       String
+  coAdminPhone     String?
+  adminPinHash     String?
+  viewPasswordHash String?
+  collectUpiId     String?
+  createdAt        DateTime       @default(now())
+  contributions    Contribution[]
+  expenses         Expense[]
+  members          EventMember[]
+  photos           EventPhoto[]
+  activityLogs     ActivityLog[]
+}
+
+model EventMember {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  phone     String
+  name      String?
+  role      String
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, phone])
+  @@index([eventId])
+}
+
+model EventPhoto {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  caption   String?
+  dataUrl   String
+  kind      String   @default("gallery")
+  createdAt DateTime @default(now())
+
+  @@index([eventId])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  eventId    String
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  actorPhone String?
+  actorName  String?
+  action     String
+  detail     String?
+  createdAt  DateTime @default(now())
+
+  @@index([eventId])
+}
+
+model Contribution {
+  id                String         @id @default(cuid())
+  eventId           String
+  event             Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name              String
+  phone             String
+  village           String
+  father            String
+  amount            Int
+  mode              String
+  txnId             String?
+  receiptNo         String
+  status            String         @default("pending")
+  confirmToken      String?        @unique
+  confirmExpiresAt  DateTime?
+  receiptSmsPreview String?
+  receiptSmsSent    Boolean        @default(false)
+  lastRemindedAt    DateTime?
+  createdAt         DateTime       @default(now())
+  paymentIntent     PaymentIntent?
+
+  @@index([eventId])
+  @@index([status])
+}
+
+model PaymentIntent {
+  id                String       @id @default(cuid())
+  contributionId    String       @unique
+  contribution      Contribution @relation(fields: [contributionId], references: [id], onDelete: Cascade)
+  provider          String       @default("razorpay")
+  amount            Int
+  status            String       @default("created")
+  razorpayOrderId   String?      @unique
+  razorpayPaymentId String?
+  rawPayload        String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([razorpayOrderId])
+}
+
+model Expense {
+  id              String        @id @default(cuid())
+  eventId         String
+  event           Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  item            String
+  vendor          String
+  vendorUpi       String?
+  amount          Int
+  mode            String
+  category        String?
+  txnId           String?
+  billNote        String?
+  billPhotoData   String?
+  gps             String?
+  approved        Boolean       @default(true)
+  needsApproval   Boolean       @default(false)
+  approvedByPhone String?
+  createdAt       DateTime      @default(now())
+  flags           DisputeFlag[]
+
+  @@index([eventId])
+}
+
+model DisputeFlag {
+  id         String   @id @default(cuid())
+  expenseId  String
+  expense    Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  byName     String
+  byPhone    String
+  comment    String
+  resolution String?
+  status     String   @default("open")
+  createdAt  DateTime @default(now())
+
+  @@index([expenseId])
+}
+
+model OtpSession {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  purpose   String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+}

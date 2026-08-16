@@ -1,0 +1,18 @@
+{
+  "name": "SAAF Hisab",
+  "short_name": "SAAF Hisab",
+  "description": "Event-based chanda & expense transparency",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#e7efe8",
+  "theme_color": "#0a3d33",
+  "lang": "hi",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

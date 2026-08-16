@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SAAF Hisāb
 
-## Getting Started
+Event transparency app — Next.js + Prisma + PostgreSQL.
 
-First, run the development server:
+## Local
 
 ```bash
+cd ~/Desktop/saaf-hisab
+cp .env.example .env
+# Set DATABASE_URL (Postgres) + npm run db:setup
+npm install
+npm run db:setup
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Demo OTP (no SMS keys): `1234`  
+Setup keys UI: http://localhost:3000/setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy (Vercel)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Database
+- Prefer [Neon](https://neon.tech) free Postgres, **or**
+- Claim temp Prisma DB (if you used `create-db`) before it expires.
 
-## Learn More
+### 2. Login + deploy
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+cd ~/Desktop/saaf-hisab
+npx vercel login
+npx vercel          # preview
+npx vercel --prod   # production
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Env vars (Vercel → Project → Settings → Environment Variables)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Name | Value |
+|------|--------|
+| `DATABASE_URL` | Postgres connection string |
+| `NEXT_PUBLIC_APP_URL` | `https://your-app.vercel.app` |
+| `DEMO_OTP` | `1234` (until SMS live) |
+| Razorpay / SMS | optional until Phase 2 live |
 
-## Deploy on Vercel
+After first deploy, seed once:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+DATABASE_URL="..." NEXT_PUBLIC_APP_URL="https://..." npm run db:seed
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Or open the empty app and create your first event.
+
+### 4. Webhook
+`https://YOUR-APP.vercel.app/api/webhooks/razorpay` → event `payment.captured`
+
+## Notes
+- SQLite removed — production needs Postgres.
+- `vercel-build` runs `prisma db push` on each deploy (MVP-friendly).
