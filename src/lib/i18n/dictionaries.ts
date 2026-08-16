@@ -3,8 +3,7 @@ export type Lang = "hi" | "en";
 export const dictionaries = {
   en: {
     brand: "SAAF Hisāb",
-    tagline:
-      "Full transparency per event — money in, money out, balance clear. Not village-bound: event-bound.",
+    tagline: "Full transparency per event — money in, money out, balance clear.",
     events: "Events",
     home: "Home",
     seeEvents: "See events",
@@ -50,7 +49,18 @@ export const dictionaries = {
     pinRequired: "Admin PIN required",
     scanQr: "Scan to contribute",
     installApp: "Install app",
-    installHint: "Add to Home Screen for app-like use",
+    installHint: "Get SAAF Hisāb on your phone home screen — free, no Play Store.",
+    installIosTitle: "iPhone / iPad",
+    installIosSteps:
+      "1) Open this site in Safari → 2) Tap Share (□↑) → 3) Add to Home Screen → Add",
+    installAndroidTitle: "Android",
+    installAndroidSteps:
+      "1) Open this site in Chrome → 2) Tap ⋮ menu → Install app / Add to Home screen",
+    installDesktopTitle: "Computer",
+    installDesktopSteps: "In Chrome/Edge, use the ⊕ Install icon in the address bar, or menu → Install app",
+    installReady: "Install now",
+    installInstalled: "App already installed on this device",
+    installHow: "How to install",
     language: "Language",
     theme: "Theme",
     light: "Light",
@@ -171,8 +181,7 @@ export const dictionaries = {
   },
   hi: {
     brand: "साफ़ हिसाब",
-    tagline:
-      "हर कार्यक्रम का पूरा हिसाब — चंदा आए, खर्च जाए, शेष साफ़ दिखे। गाँव नहीं, कार्यक्रम की सीमा।",
+    tagline: "हर कार्यक्रम का पूरा हिसाब — चंदा आए, खर्च जाए, शेष साफ़ दिखे।",
     events: "कार्यक्रम",
     home: "मुख्य पृष्ठ",
     seeEvents: "कार्यक्रम देखें",
@@ -218,7 +227,18 @@ export const dictionaries = {
     pinRequired: "प्रशासक पिन आवश्यक है",
     scanQr: "स्कैन करके चंदा दें",
     installApp: "ऐप स्थापित करें",
-    installHint: "होम स्क्रीन पर जोड़कर ऐप जैसा उपयोग करें",
+    installHint: "फ़ोन की होम स्क्रीन पर साफ़ हिसाब लगाएँ — मुफ़्त, प्ले स्टोर नहीं।",
+    installIosTitle: "आईफ़ोन / आईपैड",
+    installIosSteps:
+      "१) सफारी में साइट खोलें → २) शेयर बटन (□↑) → ३) होम स्क्रीन पर जोड़ें → जोड़ें",
+    installAndroidTitle: "एंड्रॉइड",
+    installAndroidSteps:
+      "१) क्रोम में साइट खोलें → २) ⋮ मेन्यू → ऐप स्थापित करें / होम स्क्रीन पर जोड़ें",
+    installDesktopTitle: "कंप्यूटर",
+    installDesktopSteps: "क्रोम/एज पता पट्टी में ⊕ स्थापित, या मेन्यू → ऐप स्थापित करें",
+    installReady: "अभी स्थापित करें",
+    installInstalled: "इस डिवाइस पर ऐप पहले से स्थापित है",
+    installHow: "कैसे स्थापित करें",
     language: "भाषा",
     theme: "थीम",
     light: "उजला",
