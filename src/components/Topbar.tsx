@@ -8,6 +8,7 @@ export function Topbar({ pill }: { pill?: string }) {
   const { t, lang, setLang, theme, toggleTheme } = useUI();
   const pathname = usePathname();
   const onSetup = pathname === "/setup" || pathname?.startsWith("/setup/");
+  const onInstall = pathname === "/install" || pathname?.startsWith("/install/");
 
   return (
     <header className="topbar">
@@ -42,6 +43,11 @@ export function Topbar({ pill }: { pill?: string }) {
         <button type="button" className="icon-btn" onClick={toggleTheme} title={t.theme}>
           {theme === "light" ? "◐" : "◑"}
         </button>
+        {!onSetup && !onInstall && (
+          <Link href="/install" className="pill">
+            {t.installApp}
+          </Link>
+        )}
         {!onSetup && (
           <Link href="/setup" className="pill subtle">
             {t.setup}

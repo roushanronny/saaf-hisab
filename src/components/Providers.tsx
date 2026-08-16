@@ -35,9 +35,6 @@ export function AppUIProvider({ children }: { children: ReactNode }) {
     if (savedLang === "hi" || savedLang === "en") setLangState(savedLang);
     if (savedTheme === "light" || savedTheme === "dark") setThemeState(savedTheme);
     setReady(true);
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
-    }
   }, []);
 
   useEffect(() => {
@@ -47,6 +44,16 @@ export function AppUIProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("saaf_lang", lang);
     localStorage.setItem("saaf_theme", theme);
   }, [lang, theme, ready]);
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    const onLoad = () => {
+      navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" }).catch(() => {});
+    };
+    if (document.readyState === "complete") onLoad();
+    else window.addEventListener("load", onLoad);
+    return () => window.removeEventListener("load", onLoad);
+  }, []);
 
   const setLang = useCallback((l: Lang) => setLangState(l), []);
   const setTheme = useCallback((th: Theme) => setThemeState(th), []);

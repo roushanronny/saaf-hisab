@@ -1,18 +1,24 @@
-/* SAAF Hisāb — installable PWA */
-const CACHE = "saaf-shell-v2";
-const SHELL = ["/", "/manifest.webmanifest", "/icon-192.png", "/icon-512.png"];
+/* SAAF Hisab PWA — resilient install */
+const CACHE = "saaf-shell-v3";
+const SHELL = ["/manifest.webmanifest", "/icon-192.png", "/icon-512.png", "/icon-180.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting())
+    (async () => {
+      const cache = await caches.open(CACHE);
+      await Promise.all(SHELL.map((url) => cache.add(url).catch(() => undefined)));
+      await self.skipWaiting();
+    })()
   );
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)));
+      await self.clients.claim();
+    })()
   );
 });
 
@@ -20,24 +26,41 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
 
-  const url = new URL(req.url);
+  let url;
+  try {
+    url = new URL(req.url);
+  } catch {
+    return;
+  }
   if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith("/api/")) return;
 
-  // Never cache API / dynamic hisāb data incorrectly
-  if (url.pathname.startsWith("/api/")) {
-    event.respondWith(fetch(req));
+  // Navigation: network-first, fallback home shell if offline
+  if (req.mode === "navigate") {
+    event.respondWith(
+      fetch(req).catch(async () => {
+        const cache = await caches.open(CACHE);
+        return (await cache.match("/install")) || (await cache.match("/")) || Response.error();
+      })
+    );
     return;
   }
 
-  event.respondWith(
-    fetch(req)
-      .then((res) => {
-        const copy = res.clone();
-        if (res.ok && (url.pathname === "/" || url.pathname.match(/\.(png|svg|webmanifest|js|css)$/))) {
-          caches.open(CACHE).then((cache) => cache.put(req, copy));
-        }
-        return res;
+  // Static assets: cache-first
+  if (/\.(png|svg|webmanifest|js|css|woff2?)$/i.test(url.pathname) || url.pathname === "/sw.js") {
+    event.respondWith(
+      caches.match(req).then((hit) => {
+        const fresh = fetch(req)
+          .then((res) => {
+            if (res.ok) {
+              const copy = res.clone();
+              caches.open(CACHE).then((c) => c.put(req, copy));
+            }
+            return res;
+          })
+          .catch(() => hit);
+        return hit || fresh;
       })
-      .catch(() => caches.match(req).then((hit) => hit || caches.match("/")))
-  );
+    );
+  }
 });
